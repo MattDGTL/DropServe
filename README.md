@@ -1,14 +1,6 @@
 🥾 **DropServe**: Street-Smart File Downloads for Open WebUI (or Any Docker Host)
 
 [![Docker Build](https://img.shields.io/badge/build-docker-blue)](https://hub.docker.com/r/MattDGTL/dropserve)
-### Quick Start
-    
-    ```bash
-    docker run -d \
-      --name dropserve \
-      -p 8080:8000 \
-      -v /your/host/folder:/webfiles \
-      mattdgtl/dropserve
 
 plug-and-play file server built for anyone running Open WebUI, LLM agents, or code tools in Docker that need a real, always-downloadable file link.
 What is DropServe?
@@ -28,7 +20,16 @@ How Does It Work?
     Every file in there becomes instantly downloadable at
     http://your-server:8080/filename
     (with a “force download” header so your browser never tries to just display it).
+
+### Quick Start
     
+    ```bash
+    docker run -d \
+      --name dropserve \
+      -p 8080:8000 \
+      -v /your/host/folder:/webfiles \
+      mattdgtl/dropserve
+      
 How To Use With Open WebUI
     Map your Open WebUI outputs folder to DropServe’s /webfiles:
         If your Open WebUI is in Docker, set this in your docker-compose.yml:
