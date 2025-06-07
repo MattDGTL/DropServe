@@ -1,5 +1,7 @@
 🥾 **DropServe**: Street-Smart File Downloads for Open WebUI (or Any Docker Host)
 
+[![Docker Build](https://img.shields.io/badge/build-docker-blue)](https://hub.docker.com/r/MattDGTL/dropserve)
+
 plug-and-play file server built for anyone running Open WebUI, LLM agents, or code tools in Docker that need a real, always-downloadable file link.
 What is DropServe?
     DropServe is a dead-simple Docker container that hosts a folder and guarantees every file you (or your AI) create is downloadable by direct link—no browser drama, no MIME shenanigans, just pure “Save as…” every time.
@@ -75,3 +77,10 @@ Shoutout
 
 Built for the streets, tested in the lab—if your AI needs to hand you files, DropServe keeps the corner hot.
 No more “I can’t download this” headaches.
+
+```bash
+docker run -d \
+  --name dropserve \
+  -p 8080:8000 \
+  -v /your/host/folder:/webfiles \
+  mattdgtl/dropserve
