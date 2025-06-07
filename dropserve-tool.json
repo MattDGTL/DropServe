@@ -1,0 +1,66 @@
+import docker
+import io
+import tarfile
+from pathlib import Path
+
+CACHE_DIR = "/app/backend/open_webui/data"
+DOWNLOADS_CACHE_DIR = Path(CACHE_DIR).joinpath("downloads/")
+DOWNLOADS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+OUTPUT_DIR = "/mnt/outputs/"
+
+
+def extract_and_publish_downloads(container, output_dir=OUTPUT_DIR):
+    files = []
+    try:
+        tar_stream, _ = container.get_archive(output_dir)
+        tar_data = b""
+        for chunk in tar_stream:
+            tar_data += chunk
+        with tarfile.open(fileobj=io.BytesIO(tar_data), mode="r") as tar:
+            for member in tar.getmembers():
+                if member.isfile():
+                    file_name = Path(member.name).name
+                    file_path = DOWNLOADS_CACHE_DIR.joinpath(file_name)
+                    with open(file_path, "wb") as f:
+                        f.write(tar.extractfile(member).read())
+                    files.append(file_name)
+    except Exception as e:
+        print(f"Failed to retrieve downloads: {e}")
+    return files
+
+
+class Tools:
+    async def run_python_code_with_downloads(
+        self,
+        code: str,
+        __event_emitter__,
+        __messages__,
+        __model__,
+    ) -> str:
+        """Run user Python code in Docker and give download links for files created in /mnt/outputs/."""
+        client = docker.from_env()
+        # Mount /mnt/outputs from host for file sharing
+        volumes = {
+            "/home/matt/docker/open-webui/outputs": {
+                "bind": "/mnt/outputs",
+                "mode": "rw",
+            }
+        }
+        container = client.containers.run(
+            image="python:3.11-alpine",
+            command=["python", "-c", code],
+            volumes=volumes,
+            detach=True,
+            tty=True,
+            remove=False,
+        )
+        try:
+            result = container.wait(timeout=120)
+            logs = container.logs().decode()
+            files = extract_and_publish_downloads(container)
+            output = f"Logs:\n{logs}\n"
+            for fname in files:
+                output += f"Download: [{fname}](http://192.168.1.69:8080/{fname})\n"
+        finally:
+            container.remove(force=True)
+        return output
